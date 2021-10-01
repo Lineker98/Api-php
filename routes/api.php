@@ -20,3 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/contas', 'App\Http\Controllers\ContaController@index');
 Route::get('/contas/{id}', 'App\Http\Controllers\ContaController@show');
+Route::post('/contas', 'App\Http\Controllers\ContaController@deposito');

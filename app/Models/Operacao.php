@@ -8,4 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Operacao extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'numero_conta', 'tipo_transacao', 'valor', 'moeda'
+    ];
 }

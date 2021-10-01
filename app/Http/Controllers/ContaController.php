@@ -10,10 +10,12 @@ use Illuminate\Support\Facades\DB;
 class ContaController extends Controller{
 
     private $conta;
+    private $operacao;
 
-    public function __construct(Conta $conta)
+    public function __construct(Conta $conta, Operacao $operacao)
     {
         $this->conta = $conta;
+        $this->operacao = $operacao;
     }
     /**
      * Display a listing of the resource.
@@ -22,8 +24,8 @@ class ContaController extends Controller{
      */
     public function index()
     {
-        $contas = DB::select('select * from conta');
-        return  $contas;
+        $this->conta = DB::select('select * from conta');
+        return  $this->conta;
     }
 
     /**
@@ -37,14 +39,33 @@ class ContaController extends Controller{
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Realiza depósito na conta requerida.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function deposito(Request $request)
     {
-        //
+        
+
+        try {
+
+            $depositoData = $request->all();
+
+            $numero_conta = $depositoData['numero_conta'];
+            $tipo_transacao = $depositoData['tipo_transacao'];
+            $valor = $depositoData['valor'];
+            $moeda = $depositoData['moeda'];
+            DB::insert('insert into transacao (numero_conta, tipo_transacao, valor, moeda)
+                        values (?, ?, ?, ?)', [$numero_conta, $tipo_transacao, $valor, $moeda]);
+            
+            return response()->json(['msg' => 'Depósito realizado com sucesso'], 201);
+
+        } catch (\Throwable $e) {
+            if(config('app.debug')){
+                return response()->json(['msg' => $e->getMessage()]);
+            }
+        }
     }
 
     /**
