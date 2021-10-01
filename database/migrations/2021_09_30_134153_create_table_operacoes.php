@@ -13,11 +13,11 @@ class CreateTableOperacoes extends Migration
      */
     public function up()
     {
-        Schema::create('operacoes', function (Blueprint $table) {
+        Schema::create('transacao', function (Blueprint $table) {
             $table->foreignId('numero_conta');
-            $table->string('tipo_operacao');
-            $table->float('valor');
-            $table->string('moeda');
+            $table->string('tipo_transacao');
+            $table->decimal('valor', 10, 2);
+            $table->string('moeda', 3);
             $table->timestamps();
 
             // A chave estrangeira 'numero_conta'
@@ -27,7 +27,7 @@ class CreateTableOperacoes extends Migration
                 ->references('numero_conta')
 
                 // da tabela 'contas'
-                ->on('contas')
+                ->on('conta')
 
                 // Deleção em cascata
                 ->onDelete('CASCADE')
@@ -44,6 +44,6 @@ class CreateTableOperacoes extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('operacoes');
+        Schema::dropIfExists('transacao');
     }
 }

@@ -18,7 +18,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/ok', function(){
-
-        return ['status' => True];
-});
+Route::get('/contas', 'App\Http\Controllers\ContaController@index');
+Route::get('/contas/{id}', 'App\Http\Controllers\ContaController@show');
