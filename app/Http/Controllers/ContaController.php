@@ -2,21 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\API\ConsumirApi;
 use App\Models\Conta;
 use App\Models\Operacao;
+use GrahamCampbell\ResultType\Result;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class ContaController extends Controller{
 
-    private $conta;
-    private $operacao;
 
-    public function __construct(Conta $conta, Operacao $operacao)
-    {
-        $this->conta = $conta;
-        $this->operacao = $operacao;
-    }
     /**
      * Display a listing of the resource.
      *
@@ -28,15 +23,7 @@ class ContaController extends Controller{
         return  $this->conta;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+
 
     /**
      * Realiza depósito na conta requerida.
@@ -47,7 +34,6 @@ class ContaController extends Controller{
     public function deposito(Request $request)
     {
         
-
         try {
 
             $depositoData = $request->all();
@@ -68,52 +54,34 @@ class ContaController extends Controller{
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
 
-        $this->conta = DB::select('select * from conta where numero_conta = ?', [1]);
-        $data = ['data' => $this->conta];
+    public function saque(Request $request){
 
-        return response()->json($data);
+        $dados_saque = $request->all();
+
+        $numero_conta = $dados_saque['numero_conta'];
+        $moeda = $dados_saque['moeda'];
+        $valor = $dados_saque['valor_saque'];
+ 
+        $sum_deposito = DB::table('transacao')
+                            ->where('numero_conta', 1)
+                            ->where('moeda', 'like', $moeda)
+                            ->where('tipo_transacao', 'like', 'deposito')
+                            ->sum('valor');
+
+        // $sum_saque = DB::table('transacao')
+        //                     ->where('numero_conta', 1)
+        //                     ->where('moeda', 'like', 'USD')
+        //                     ->where('tipo_transacao', 'like', 'saque')
+        //                     ->sum('valor');     
+                            
+        // $saldo = $sum_deposito - $sum_saque;
+        return $sum_deposito;
+        
+
+        // $resultado = ConsumirApi::getData("USD", "09-02-2021");
+
+        // return $resultado;
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
 }
