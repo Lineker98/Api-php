@@ -8,29 +8,22 @@ use App\Models\Operacao;
 use GrahamCampbell\ResultType\Result;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use phpDocumentor\Reflection\Types\Null_;
 
 class ContaController extends Controller{
 
+    
+    private $full_date;
+    private $date;
 
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    public function __construct()
     {
-        $this->conta = DB::select('select * from conta');
-        return  $this->conta;
+        date_default_timezone_set('America/Sao_Paulo');
+        $this->full_date = date('d/m/Y h:i:s');
+        $this->date = date('d/m/Y');
     }
 
 
-
-    /**
-     * Realiza depósito na conta requerida.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function deposito(Request $request)
     {
         
@@ -78,32 +71,80 @@ class ContaController extends Controller{
 
     public function saque(Request $request){
 
-        date_default_timezone_set('America/Sao_Paulo');
         $dados_saque = $request->all();
 
         $numero_conta = $dados_saque['numero_conta'];
         $moeda = $dados_saque['moeda'];
         $valor = $dados_saque['valor'];
  
-        // $sum_deposito = DB::table('transacao')
-        //                     ->where('numero_conta', $numero_conta)
-        //                     ->where('moeda', 'like', $moeda)
-        //                     ->where('', 'like', 'deposito')
-        //                     ->sum('valor');
+        $saldo = DB::table('saldo')
+                            ->where('numero_conta', $numero_conta)
+                            ->where('moeda', 'like', $moeda)
+                            ->sum('saldo');
 
-        // $sum_saque = DB::table('transacao')
-        //                      ->where('numero_conta', $numero_conta)
-        //                      ->where('moeda', 'like', $moeda)
-        //                      ->where('', 'like', 'saque')
-        //                      ->sum('valor');     
-                            
-        // $saldo = $sum_deposito - $sum_saque;
         
-        $full_date = date('d/m/Y h:i:s');
-        $date = date('d/m/Y');
+        if ($saldo >= $valor) {
 
-        $resultado = ConsumirApi::getData($moeda, $date);
-        //return $resultado;
+            DB::update('update saldo set saldo = ? where moeda = ? and numero_conta = ?',
+                        [$saldo - $valor, $moeda, $numero_conta]);
+            return response()->json(['mensagem' => 'Saque realizado com sucesso!'], 201);
+
+        } else {
+            
+        }
+
+        $cotacao_moeda = ConsumirApi::getData($moeda, $this->date);
+        $cotacao_moeda = json_decode($cotacao_moeda);
+
+        //$cotacao_moeda->value[0]->dataHoraCotacao
+        //return $cotacao_moeda->value[0];
+    }
+
+    public function saldo($numero_conta, $moeda = null){
+
+        try{
+            if ($moeda === null) { 
+                
+                $saldo = DB::select('select saldo, moeda from saldo where numero_conta = ?', [$numero_conta]);
+                return response()->json($saldo, 200);
+
+            } else {
+
+                //para cada moeda e saldo na conta
+                $moeda_saldo = DB::select('select moeda, saldo from saldo where numero_conta = ?', [$numero_conta]);
+
+                $saldo_total = 0;
+
+                foreach ($moeda_saldo as $key => $value) {
+
+                    // sigla da moeda
+                    $sigla_moeda =  $value->moeda;
+                    // obtenção da cotação da moeda para compra
+                    $cotacao_moeda = ConsumirApi::getData($sigla_moeda, $this->date);
+                    $cotacao_moeda = json_decode($cotacao_moeda);
+
+                    if ($sigla_moeda === $moeda) {
+                        $saldo_total = $saldo_total + $value->saldo;
+                    } else {
+
+                        // obtenção da cotação da moeda para realizar a venda para o saque na moeda desejada
+                        $moeda_saque = ConsumirApi::getData($moeda, $this->date);
+                        $moeda_saque = json_decode($moeda_saque);
+
+                        $saldo_total += ($value->saldo * $cotacao_moeda->value[0]->cotacaoCompra)/$moeda_saque->value[0]->cotacaoVenda;
+
+                    }
+                    
+                }
+                return response()->json(['Saldo total em '.$moeda.' = ' => $saldo_total], 200);
+            }
+        }catch (\Throwable $e) {
+            
+            if(config('app.debug')){
+                return response()->json(['msg' => $e->getMessage()], 400);
+            }
+            return response()->json(['mensagem' => 'Erro na obtenção do saldo!'], 400);
+        }
     }
 
 }

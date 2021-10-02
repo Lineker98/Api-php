@@ -18,6 +18,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::get('/contas', 'App\Http\Controllers\ContaController@index');
+//Route::get('/contas', 'App\Http\Controllers\ContaController@index');
 Route::post('/contas', 'App\Http\Controllers\ContaController@deposito');
-Route::post('/contas/saque', 'App\Http\Controllers\ContaController@saque');
+Route::put('/contas', 'App\Http\Controllers\ContaController@saque');
+Route::get('/contas/{numero_conta}/{moeda?}', 'App\Http\Controllers\ContaController@saldo');
