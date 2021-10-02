@@ -17,6 +17,7 @@ class CreateTableSaldo extends Migration
             $table->foreignId('numero_conta');
             $table->float('saldo', 10, 2);
             $table->string('moeda', 3);
+            $table->timestamps();
 
             // A chave estrangeira 'numero_conta'
             $table->foreign('numero_conta')
