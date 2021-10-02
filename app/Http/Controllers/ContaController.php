@@ -61,22 +61,26 @@ class ContaController extends Controller{
 
         $numero_conta = $dados_saque['numero_conta'];
         $moeda = $dados_saque['moeda'];
-        $valor = $dados_saque['valor_saque'];
+        $valor = $dados_saque['valor'];
  
         $sum_deposito = DB::table('transacao')
-                            ->where('numero_conta', 1)
+                            ->where('numero_conta', $numero_conta)
                             ->where('moeda', 'like', $moeda)
                             ->where('tipo_transacao', 'like', 'deposito')
                             ->sum('valor');
 
-        // $sum_saque = DB::table('transacao')
-        //                     ->where('numero_conta', 1)
-        //                     ->where('moeda', 'like', 'USD')
-        //                     ->where('tipo_transacao', 'like', 'saque')
-        //                     ->sum('valor');     
+        $sum_saque = DB::table('transacao')
+                             ->where('numero_conta', $numero_conta)
+                             ->where('moeda', 'like', $moeda)
+                             ->where('tipo_transacao', 'like', 'saque')
+                             ->sum('valor');     
                             
-        // $saldo = $sum_deposito - $sum_saque;
-        return $sum_deposito;
+        $saldo = $sum_deposito - $sum_saque;
+
+        if () {
+            # code...
+        }
+        return $saldo;
         
 
         // $resultado = ConsumirApi::getData("USD", "09-02-2021");

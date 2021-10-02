@@ -13,7 +13,7 @@ class CreateTableContas extends Migration
      */
     public function up()
     {
-        Schema::create('contas', function (Blueprint $table) {
+        Schema::create('conta', function (Blueprint $table) {
             $table->id('numero_conta');
             $table->timestamps();
         });
@@ -26,6 +26,6 @@ class CreateTableContas extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('contas');
+        Schema::dropIfExists('conta');
     }
 }
