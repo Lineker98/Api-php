@@ -4,11 +4,8 @@ namespace App\Http\Controllers;
 
 use App\API\ConsumirApi;
 use App\Models\Conta;
-use App\Models\Operacao;
-use GrahamCampbell\ResultType\Result;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use phpDocumentor\Reflection\Types\Null_;
 
 class ContaController extends Controller{
 
@@ -21,6 +18,22 @@ class ContaController extends Controller{
         date_default_timezone_set('America/Sao_Paulo');
         $this->full_date = date('Y-m-d h:i:s');
         $this->date = date('d/m/Y');
+    }
+
+    public function criacao_conta(Request $request){
+
+        try{
+            DB::insert('insert into conta (numero_conta, created_at) values (?, ?)',
+            [$request->numero_conta, $this->full_date]);
+            return response()->json(['mensagem' => 'Conta criada com sucesso!'], 201);
+
+        }catch (\Throwable $e) {
+            if(config('app.debug')){
+                return response()->json(['msg' => $e->getMessage()], 400);
+            }
+            return response()->json(['mensagem' => 'Erro ao criar a conta!'], 400);
+        }
+
     }
 
 

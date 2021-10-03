@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Operacao extends Model
+class Saldo extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'numero_conta', 'tipo_transacao', 'valor', 'moeda'
+        'numero_conta',
+        'saldo',
+        'moeda',
     ];
 }
