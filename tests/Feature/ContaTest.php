@@ -26,6 +26,17 @@ class ContaTest extends TestCase
         
     }
 
+    public function realizacaoDeposito($dados_deposito){
+
+        // operacao de deposito
+        $this->json('POST', 'api/contas/deposito', $dados_deposito)
+            ->assertStatus(201)
+            ->assertJson([
+                "mensagem" => "Depósito realizado com sucesso!",
+            ]);
+
+    }
+
     
     /** @test */
     public function contaPodeSerCriada(){
@@ -51,29 +62,21 @@ class ContaTest extends TestCase
 
         $this->criacaoConta();
 
-        $deposito_data_1 = [
+        $dados_deposito_1 = [
             'numero_conta' => 1,
             'valor' => 350,
             'moeda' => "USD",
         ];
-        // primeiro deposito
-        $this->json('POST', 'api/contas/deposito', $deposito_data_1)
-            ->assertStatus(201)
-            ->assertJson([
-                "mensagem" => "Depósito realizado com sucesso!",
-            ]);
-
-        $deposito_data_2 = [
+        $dados_deposito_2 = [
             'numero_conta' => 1,
             'valor' => 350,
             'moeda' => "EUR",
         ];
+
+        // primeiro deposito
+        $this->realizacaoDeposito($dados_deposito_1);
         // segundo deposito
-        $this->json('POST', 'api/contas/deposito', $deposito_data_2)
-            ->assertStatus(201)
-            ->assertJson([
-                "mensagem" => "Depósito realizado com sucesso!",
-            ]);
+        $this->realizacaoDeposito($dados_deposito_2);
             
         $this->assertCount(2, DB::select('select * from transacao'));
 
@@ -84,18 +87,14 @@ class ContaTest extends TestCase
 
         $this->criacaoConta();
 
-        $deposito_data = [
+        $dados_deposito = [
             'numero_conta' => 1,
             'valor' => 350,
             'moeda' => "USD",
         ];
 
         // operacao de deposito
-        $this->json('POST', 'api/contas/deposito', $deposito_data)
-            ->assertStatus(201)
-            ->assertJson([
-                "mensagem" => "Depósito realizado com sucesso!",
-            ]);
+        $this->realizacaoDeposito($dados_deposito);
         
         $this->assertCount(1, DB::select('select * from saldo'));
     }
@@ -105,39 +104,66 @@ class ContaTest extends TestCase
 
         $this->criacaoConta();
 
-        $deposito_data_1 = [
+        $dados_deposito_1 = [
             'numero_conta' => 1,
             'valor' => 350,
             'moeda' => "USD",
         ];
-
-        // primeiro deposito
-        $this->json('POST', 'api/contas/deposito', $deposito_data_1)
-            ->assertStatus(201)
-            ->assertJson([
-                "mensagem" => "Depósito realizado com sucesso!",
-            ]);
-        
-        $deposito_data_2 = [
+        $dados_deposito_2 = [
             'numero_conta' => 1,
             'valor' => 500,
             'moeda' => "USD",
         ];
-    
+
+        // primeiro deposito
+        $this->realizacaoDeposito($dados_deposito_1);
+
         // segundo deposito
-        $this->json('POST', 'api/contas/deposito', $deposito_data_2)
-            ->assertStatus(201)
-            ->assertJson([
-                "mensagem" => "Depósito realizado com sucesso!",
-            ]);
+        $this->realizacaoDeposito($dados_deposito_2);
 
         $actual = DB::table('saldo')
                     ->where('numero_conta', 1)
                     ->where('moeda', 'like', 'USD')
                     ->sum('saldo');
-        $this->assertEquals($deposito_data_1['valor'] + $deposito_data_2['valor'], $actual);
+
+        $this->assertEquals($dados_deposito_1['valor'] + $dados_deposito_2['valor'], $actual);
 
     }
 
-    
+    /** @test */
+    public function obtencaoDoSaldoSemExpecificacaoDaMoeda(){
+
+        $this->criacaoConta();
+
+        $dados_deposito_1 = [
+            'numero_conta' => 1,
+            'valor' => 350,
+            'moeda' => "USD",
+        ];
+        // primeiro deposito
+        $this->realizacaoDeposito($dados_deposito_1);
+
+        $dados_deposito_2 = [
+            'numero_conta' => 1,
+            'valor' => 10,
+            'moeda' => "EUR",
+        ];
+        // segundo deposito
+        $this->realizacaoDeposito($dados_deposito_2);
+
+        $this->json('GET', 'api/contas/saldo/1')
+            ->assertStatus(200)
+            ->assertJson([
+                0 => [
+                    'saldo' => 350,
+                    'moeda' => 'USD'
+                ],
+                1 => [
+                    'saldo' => 10,
+                    'moeda' => 'EUR'
+                ]
+            ]);
+
+    }
+
 }
