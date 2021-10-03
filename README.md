@@ -5,6 +5,8 @@
 A API desenvolvida em PHP possui como objetivo a realização de operações bancárias como saques, depósitos, retiradas de saldo e extratos 
 em diferentes moedas, realizando dos valores das moedas através da [API](https://dadosabertos.bcb.gov.br/dataset/taxas-de-cambio-todos-os-boletins-diarios/resource/9d07b9dc-c2bc-47ca-af92-10b18bcd0d69) fornecida pelo Banco Central.
 
+Para maiores informações sobre os requisitos do desafio, acesse o [link](https://github.com/Lineker98/Api-php/blob/main/informa%C3%A7%C3%B5es/desafio_programador.pdf)
+
 
 ## 📋 Pré-requisitos para executar a aplicação
 
