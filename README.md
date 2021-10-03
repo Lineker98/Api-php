@@ -19,9 +19,7 @@ php composer.phar install
 
 Posteriormente, abra o painel de controle do XAPP e ligue o servidor apache e o banco de dados mysql, como ilustrado abaixo.
 
-<div align="center" style="width:100%">
-    <img width="30%" src = "./informações/xamp.png">
-</div>
+![img](https://github.com/Lineker98/Api-php/blob/main/informa%C3%A7%C3%B5es/xampp.png)
 
 Ainda na pasta raiz do projeto, digite o seguinte comando para subir o servidor local da aplicação:
 
