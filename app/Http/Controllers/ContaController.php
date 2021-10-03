@@ -19,7 +19,7 @@ class ContaController extends Controller{
     public function __construct()
     {
         date_default_timezone_set('America/Sao_Paulo');
-        $this->full_date = date('d/m/Y h:i:s');
+        $this->full_date = date('Y-m-d h:i:s');
         $this->date = date('d/m/Y');
     }
 
@@ -40,8 +40,8 @@ class ContaController extends Controller{
                 
             if (count($dados_saldo) === 0) {
                 
-                DB::insert('insert into deposito (numero_conta, valor, moeda) values (?, ?, ?)',
-                            [$numero_conta, $valor, $moeda]);
+                DB::insert('insert into transacao (numero_conta, valor, moeda, tipo_transacao, data_transacao) values (?, ?, ?, ?, ?)',
+                            [$numero_conta, $valor, $moeda, 'deposito', $this->full_date]);
                 DB::insert('insert into saldo (numero_conta, saldo, moeda) values (?, ?, ?)',
                             [$numero_conta, $valor, $moeda]);
                 
@@ -51,15 +51,15 @@ class ContaController extends Controller{
                 
                 $saldo =  $dados_saldo[0]->saldo;
 
-                $affected = DB::update('update saldo set saldo = ? where moeda = ? and numero_conta = ?',
+                DB::insert('insert into transacao (numero_conta, valor, moeda, tipo_transacao, data_transacao) values (?, ?, ?, ?, ?)',
+                            [$numero_conta, $valor, $moeda, 'deposito', $this->full_date]);
+
+                DB::update('update saldo set saldo = ? where moeda = ? and numero_conta = ?',
                 [$saldo + $valor, $moeda, $numero_conta]);
 
                 return response()->json(['mensagem' => 'Depósito realizado com sucesso!'], 201);
             }
             
-            
-            // return response()->json(['msg' => 'Depósito realizado com sucesso'], 201);
-
         } catch (\Throwable $e) {
             if(config('app.debug')){
                 return response()->json(['msg' => $e->getMessage()], 400);
@@ -87,7 +87,11 @@ class ContaController extends Controller{
 
             DB::update('update saldo set saldo = ? where moeda = ? and numero_conta = ?',
                         [$saldo - $valor, $moeda, $numero_conta]);
-            return response()->json(['mensagem' => 'Saque realizado com sucesso!'], 201);
+
+            DB::insert('insert into transacao (numero_conta, valor, moeda, tipo_transacao, data_transacao) values (?, ?, ?)',
+                        [$numero_conta, $valor, $moeda, 'saque', $this->full_date]);
+
+            return response()->json(['msg' => 'Saque realizado com sucesso!'], 201);
 
         } else {
             
@@ -139,11 +143,41 @@ class ContaController extends Controller{
                 return response()->json(['Saldo total em '.$moeda.' = ' => $saldo_total], 200);
             }
         }catch (\Throwable $e) {
-            
+
             if(config('app.debug')){
                 return response()->json(['msg' => $e->getMessage()], 400);
             }
-            return response()->json(['mensagem' => 'Erro na obtenção do saldo!'], 400);
+            return response()->json(['msg' => 'Erro na obtenção do saldo!'], 400);
+        }
+    }
+
+    public function extrato($numero_conta, $data_inicial = null, $data_final = null){
+
+        try{
+            // sem intervalo de tempo definido
+            if ($data_inicial === null && $data_final === null) {
+                $extrato = DB::select('select * from transacao where numero_conta = ?', [$numero_conta]);
+                return response()->json(['Extrato da conta' => $extrato], 200);
+
+            // especificação de início e fim do período
+            } elseif($data_inicial !== null && $data_final !== null) {
+                $extrato = DB::select('select * from transacao where numero_conta = ? and data_transacao between ? and ?', [$numero_conta, $data_inicial, $data_final]);
+                return response()->json(['Extrato da conta' => $extrato], 200);
+
+            // data inicial especificada até o dia atual
+            } else{
+
+                $dia_atual = date('Y-m-d');
+                $extrato = DB::select('select * from transacao where numero_conta = ? and data_transacao between ? and ?', [$numero_conta, $data_inicial, $dia_atual]);
+                return response()->json(['Extrato da conta' => $extrato], 200);
+            }
+        }
+        catch (\Throwable $e) {
+
+            if(config('app.debug')){
+                return response()->json(['msg' => $e->getMessage()], 400);
+            }
+            return response()->json(['msg' => 'Erro na obtenção do extrato!'], 400);
         }
     }
 

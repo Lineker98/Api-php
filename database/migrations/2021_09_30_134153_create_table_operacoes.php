@@ -13,11 +13,12 @@ class CreateTableOperacoes extends Migration
      */
     public function up()
     {
-        Schema::create('deposito', function (Blueprint $table) {
+        Schema::create('transacao', function (Blueprint $table) {
             $table->foreignId('numero_conta');
-            $table->decimal('valor', 10, 2);
+            $table->float('valor', 10, 2);
             $table->string('moeda', 3);
-            $table->timestamps();
+            $table->string('tipo_transacao');
+            $table->timestamp('data_transacao')->nullable();
 
             // A chave estrangeira 'numero_conta'
             $table->foreign('numero_conta')
