@@ -11,6 +11,7 @@ class ContaTest extends TestCase
 
     use RefreshDatabase;
 
+
     public function criacaoConta(){
 
 
@@ -247,6 +248,42 @@ class ContaTest extends TestCase
                 ]
                 
             ]);
+
+    }
+
+    /** @test */
+    public function saqueComSaldoSuficiente(){
+
+        $this->criacaoConta();
+
+        $dados_deposito = [
+            'numero_conta' => 1,
+            'valor' => 350,
+            'moeda' => "USD",
+        ];
+
+        // deposito
+        $this->realizaDeposito($dados_deposito);
+
+        $dados_saque = [
+            'numero_conta' => 1,
+            'moeda' => "USD",
+            'valor' => 150
+        ];
+
+
+        $this->json('PUT', 'api/contas/', $dados_saque)
+            ->assertStatus(201)
+            ->assertJson([
+                "mensagem" => "Saque realizado com sucesso!",
+            ]);
+
+            $saldo_restante = DB::table('saldo')
+                    ->where('numero_conta', 1)
+                    ->where('moeda', 'like', 'USD')
+                    ->sum('saldo');
+
+        $this->assertEquals($dados_deposito['valor'] - $dados_saque['valor'], $saldo_restante);
 
     }
     

@@ -29,7 +29,7 @@ class ContaController extends Controller{
 
         }catch (\Throwable $e) {
             if(config('app.debug')){
-                return response()->json(['msg' => $e->getMessage()], 400);
+                return response()->json(['mensagem' => $e->getMessage()], 400);
             }
             return response()->json(['mensagem' => 'Erro ao criar a conta!'], 400);
         }
@@ -101,17 +101,17 @@ class ContaController extends Controller{
             DB::update('update saldo set saldo = ? where moeda = ? and numero_conta = ?',
                         [$saldo - $valor, $moeda, $numero_conta]);
 
-            DB::insert('insert into transacao (numero_conta, valor, moeda, tipo_transacao, data_transacao) values (?, ?, ?)',
+            DB::insert('insert into transacao (numero_conta, valor, moeda, tipo_transacao, data_transacao) values (?, ?, ?, ?, ?)',
                         [$numero_conta, $valor, $moeda, 'saque', $this->full_date]);
 
-            return response()->json(['msg' => 'Saque realizado com sucesso!'], 201);
+            return response()->json(['mensagem' => 'Saque realizado com sucesso!'], 201);
 
         } else {
-            
+            return response()->json(['mensagem' => 'Saldo Insuficiente'], 201);
         }
 
-        $cotacao_moeda = ConsumirApi::getData($moeda, $this->date);
-        $cotacao_moeda = json_decode($cotacao_moeda);
+        //$cotacao_moeda = ConsumirApi::getData($moeda, $this->date);
+        //$cotacao_moeda = json_decode($cotacao_moeda);
 
         //$cotacao_moeda->value[0]->dataHoraCotacao
         //return $cotacao_moeda->value[0];
