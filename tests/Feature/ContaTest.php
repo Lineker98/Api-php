@@ -26,7 +26,7 @@ class ContaTest extends TestCase
         
     }
 
-    public function realizacaoDeposito($dados_deposito){
+    public function realizaDeposito($dados_deposito){
 
         // operacao de deposito
         $this->json('POST', 'api/contas/deposito', $dados_deposito)
@@ -74,9 +74,9 @@ class ContaTest extends TestCase
         ];
 
         // primeiro deposito
-        $this->realizacaoDeposito($dados_deposito_1);
+        $this->realizaDeposito($dados_deposito_1);
         // segundo deposito
-        $this->realizacaoDeposito($dados_deposito_2);
+        $this->realizaDeposito($dados_deposito_2);
             
         $this->assertCount(2, DB::select('select * from transacao'));
 
@@ -94,7 +94,7 @@ class ContaTest extends TestCase
         ];
 
         // operacao de deposito
-        $this->realizacaoDeposito($dados_deposito);
+        $this->realizaDeposito($dados_deposito);
         
         $this->assertCount(1, DB::select('select * from saldo'));
     }
@@ -116,10 +116,10 @@ class ContaTest extends TestCase
         ];
 
         // primeiro deposito
-        $this->realizacaoDeposito($dados_deposito_1);
+        $this->realizaDeposito($dados_deposito_1);
 
         // segundo deposito
-        $this->realizacaoDeposito($dados_deposito_2);
+        $this->realizaDeposito($dados_deposito_2);
 
         $actual = DB::table('saldo')
                     ->where('numero_conta', 1)
@@ -141,7 +141,7 @@ class ContaTest extends TestCase
             'moeda' => "USD",
         ];
         // primeiro deposito
-        $this->realizacaoDeposito($dados_deposito_1);
+        $this->realizaDeposito($dados_deposito_1);
 
         $dados_deposito_2 = [
             'numero_conta' => 1,
@@ -149,7 +149,7 @@ class ContaTest extends TestCase
             'moeda' => "EUR",
         ];
         // segundo deposito
-        $this->realizacaoDeposito($dados_deposito_2);
+        $this->realizaDeposito($dados_deposito_2);
 
         $this->json('GET', 'api/contas/saldo/1')
             ->assertStatus(200)
@@ -166,4 +166,88 @@ class ContaTest extends TestCase
 
     }
 
+    /** @test */
+    public function retiradaDoExtratoSemDataEspecificada(){
+
+        $this->criacaoConta();
+
+        $dados_deposito_1 = [
+            'numero_conta' => 1,
+            'valor' => 350,
+            'moeda' => "USD",
+        ];
+        // primeiro deposito
+        $this->realizaDeposito($dados_deposito_1);
+
+        $dados_deposito_2 = [
+            'numero_conta' => 1,
+            'valor' => 10,
+            'moeda' => "EUR",
+        ];
+        // segundo deposito
+        $this->realizaDeposito($dados_deposito_2);
+
+        $this->json('GET', 'api/contas/1')
+            ->assertStatus(200)
+            ->assertJson([
+                'Extrato da conta' => [
+                    0 =>[
+                        'numero_conta' => 1,
+                        'valor' => 350,
+                        'moeda' => "USD",
+                        'tipo_transacao' => 'deposito',
+                    ],
+                    1 => [
+                        'numero_conta' => 1,
+                        'valor' => 10,
+                        'moeda' => "EUR",
+                        'tipo_transacao' => 'deposito',
+                    ]
+                ]
+                
+            ]);
+    }
+
+    public function retiradaDoExtratoComDataEspecificada(){
+
+        $this->criacaoConta();
+
+        $dados_deposito_1 = [
+            'numero_conta' => 1,
+            'valor' => 350,
+            'moeda' => "USD",
+        ];
+        // primeiro deposito
+        $this->realizaDeposito($dados_deposito_1);
+
+        $dados_deposito_2 = [
+            'numero_conta' => 1,
+            'valor' => 10,
+            'moeda' => "EUR",
+        ];
+        // segundo deposito
+        $this->realizaDeposito($dados_deposito_2);
+
+        $this->json('GET', 'api/contas/1/2021-10-02/2021-10-04')
+            ->assertStatus(200)
+            ->assertJson([
+                'Extrato da conta' => [
+                    0 =>[
+                        'numero_conta' => 1,
+                        'valor' => 350,
+                        'moeda' => "USD",
+                        'tipo_transacao' => 'deposito',
+                    ],
+                    1 => [
+                        'numero_conta' => 1,
+                        'valor' => 10,
+                        'moeda' => "EUR",
+                        'tipo_transacao' => 'deposito',
+                    ]
+                ]
+                
+            ]);
+
+    }
+    
 }
