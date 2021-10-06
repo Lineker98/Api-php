@@ -107,7 +107,7 @@ class ContaController extends Controller{
             return response()->json(['mensagem' => 'Saque realizado com sucesso!'], 201);
 
         } else {
-            return response()->json(['mensagem' => 'Saldo Insuficiente'], 201);
+            return response()->json(['mensagem' => 'Saldo insuficiente'], 201);
         }
 
         //$cotacao_moeda = ConsumirApi::getData($moeda, $this->date);
@@ -136,6 +136,7 @@ class ContaController extends Controller{
 
                     // sigla da moeda
                     $sigla_moeda =  $value->moeda;
+
                     // obtenção da cotação da moeda para compra
                     $cotacao_moeda = ConsumirApi::getData($sigla_moeda, $this->date);
                     $cotacao_moeda = json_decode($cotacao_moeda);

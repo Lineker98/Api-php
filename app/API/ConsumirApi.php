@@ -8,7 +8,7 @@ class ConsumirApi{
     
     public static function getData($moeda, $dataCotacao){
 
-        $url = 'https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='."'".$moeda."'".'&@dataCotacao='."'".$dataCotacao."'".'&$top=100&$skip=4&$format=json';
+        $url = "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda='$moeda'&@dataCotacao='$dataCotacao'&\$top=1&\$skip=4&\$format=json";
         $respose = Http::get($url);
 
         return $respose->body();
